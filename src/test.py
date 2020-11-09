@@ -1,23 +1,8 @@
-# a = [1, 2, 3]
+from jvar import JVar
+from utility import Util
 
-# class foo:
-
-#     util = 50
-
-#     def __init__(self):
-#         self.aaa = 100
-
-# def b(num):
-#     num[1] = 0
-
-# d = foo()
-
-# a.append(d)
-# d.util = 300
-# print(a[3].util)
-
-a = [1,2]
-b = [3,4]
-
-a.append(b)
-print(a)
+if __name__ == "__main__":
+    Util.getAllClass()
+    Util.all_type = Util.all_type + ["void", "short", "int", "long", "float", "double", "char", "boolean"]
+    a = JVar("ArrayList<int>[] a = new ArrayList<int>[10]")
+    print(a.toString())

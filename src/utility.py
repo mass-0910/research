@@ -2,7 +2,7 @@ import os
 
 class Util:
 
-    symbol = [',', '.', '+', '-', '*', '/', '%', '{', '}', '[', ']', '(', ')', ';', ':', '=', '>', '<', '!']
+    symbol = [',', '.', '+', '-', '*', '/', '%', '++', '--', '&', '|', '~', '<<', '>>', '>>>', '{', '}', '[', ']', '(', ')', ';', ':', '=', '>', '<', '!', '?', '==', '&&', '||', '+=', '-=', '*=', '/=', '<=', '>=', '&=', '|=', '^=', '<<=', '>>=', '>>>=']
     space = [' ', '\t', '\n', '\r']
     keywords = [   
                     "abstract", "assert", "break", "byte", "case", "catch", "class", "const", \
@@ -12,14 +12,14 @@ class Util:
                     "switch", "synchrnized", "this", "throw", "throws", "transient", "try", "volatile", "while"\
                 ]
     class_modifier = ["abstract", "final", "strictfp"]
-    all_class = []
+    all_type = []
 
     @staticmethod
     def getAllClass():
         with open(os.path.dirname(__file__) + "/java-classname.txt") as fp:
-            Util.all_class = fp.readlines()
-        for i, classname in enumerate(Util.all_class):
-            Util.all_class[i] = classname.strip()
+            Util.all_type = fp.readlines()
+        for i, classname in enumerate(Util.all_type):
+            Util.all_type[i] = classname.strip()
 
     @staticmethod
     def splitToken(sentence):
@@ -28,12 +28,12 @@ class Util:
         mode = 0 #normal
         escape = False
         for character in sentence:
-            if mode == 0: #normal
+            if mode == 0: #name
                 if character in Util.symbol:
                     if buf:
                         retval.append(buf)
-                    retval.append(character)
-                    buf = ""
+                    buf = character
+                    mode = 1 #symbol
                 elif character in Util.space:
                     if buf:
                         retval.append(buf)
@@ -42,15 +42,34 @@ class Util:
                     if buf:
                         retval.append(buf)
                     buf = "\""
-                    mode = 1 #string
+                    mode = 2 #string
                 else:
                     buf += character
-            elif mode == 1: #string
+            elif mode == 1: #symbol
+                if buf + character in Util.symbol:
+                    buf += character
+                elif character == "\"":
+                    if buf:
+                        retval.append(buf)
+                    buf = "\""
+                    mode = 2 #string
+                elif character in Util.space:
+                    if buf:
+                        retval.append(buf)
+                    buf = ""
+                    mode = 0 #name
+                else:
+                    if buf:
+                        retval.append(buf)
+                    buf = character
+                    if not character in Util.symbol:
+                        mode = 0 #name
+            elif mode == 2: #string
                 buf += character
                 if character == "\"" and not escape:
                     retval.append(buf)
                     buf = ""
-                    mode = 0
+                    mode = 0 #name
                 elif character == "\\":
                     escape = True
                 elif escape:

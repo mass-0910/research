@@ -118,30 +118,43 @@ class Debugger:
         #Reverse Viewing on Source Code
         _, buggy_codeblock = self.codeBlocks[buggy_codeblock_index]
         buggy_block, absolute_index = buggy_codeblock.allIndexToAbsoluteIndex(self.buggy_index)
-        print(buggy_block.elements)
-        print(absolute_index)
         for i in reversed(range(absolute_index)):
-            if isinstance(buggy_block.elements[i], tuple):
+            elm = buggy_block.getElements(i)
+            if CodeBlock.isSentence(buggy_block.getElements(i)):
+                sentence, linenum = elm
+                print("reverse view on line %d: %s" % (linenum, sentence))
+                tokenized_sentence = Util.splitToken(sentence)
                 
+            else:
+                print('block')
+                print(elm.allSentence())
 
         
     
     def preprocessing(self):
-        self.all_type = Util.all_class + ["void", "short", "int", "long", "float", "double", "char", "boolean"]
-        for name, code in self.codeBlocks:
+        Util.all_type = Util.all_type + ["void", "short", "int", "long", "float", "double", "char", "boolean"]
+        for filename, code in self.codeBlocks:
             public_class = code.extractPublicClass()
-            self.all_type = self.all_type + public_class
+            for class_ in public_class:
+                Util.all_type.append(class_.getName())
+        for filename, code in self.codeBlocks:
+            public_class = code.extractPublicClass()
+            for class_ in public_class:
+                class_.printClassInfo()
         self.public_attr = []
         for name, code in self.codeBlocks:
-            self.public_attr += code.extractPublicAttr(self.all_type)
-        for var in self.public_attr:
-            print(var.toString())
+            self.public_attr += code.extractPublicAttr()
+        # for var in self.public_attr:
+        #     print(var.toString())
 
 
 if __name__ == "__main__":
     dbg = Debugger("testcode/test.tc")
-    dbg.assignSourceCode("java-sourcecode/Calc.java")
-    dbg.assignSourceCode("java-sourcecode/Form.java")
+    dbg.assignSourceCode("java-sourcecode/BugSort.java")
+    # dbg = Debugger("testcode/test2.tc")
+    # dbg.assignSourceCode("java-sourcecode/Calc.java")
+    # dbg.assignSourceCode("java-sourcecode/Form.java")
+
     Util.getAllClass()
     dbg.testDecode()
     dbg.preprocessing()

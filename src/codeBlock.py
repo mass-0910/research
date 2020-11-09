@@ -1,6 +1,7 @@
 from utility import Util
 from enum import Enum
-from var import Var
+from jclass import JClass
+from jvar import JVar
 
 class CodeBlock:
 
@@ -15,6 +16,8 @@ class CodeBlock:
         self.methods = []
         self.types = []
         self.all_sentence = None
+        self.class_name = ""
+        self.method_name = ""
 
     def assign(self, sentence):
         if self.inner:
@@ -68,6 +71,9 @@ class CodeBlock:
                 else:
                     index += elm._count()
         return None
+    
+    def getElements(self, elmnum):
+        return self.elements[elmnum]
 
     def getBlockType(self):
         if self.block_type == None:
@@ -102,78 +108,56 @@ class CodeBlock:
         return self.block_type
 
     def extractPublicClass(self):
-        public_class_name = []
+        public_class = []
         for elm in self.elements:
             if not isinstance(elm, tuple):
                 if elm.getBlockType() == BlockType.class_def:
                     sentence = elm.getSentence(0)
                     tokenized_sentence = Util.splitToken(sentence)
-                    is_public_class = False
-                    for token in tokenized_sentence:
-                        if token in Util.symbol:
-                            continue
-                        if token == "public":
-                            is_public_class = True
-                        if not token in Util.keywords and is_public_class:
-                            public_class_name.append(token)
-                            break
-        return public_class_name
+                    if "public" in tokenized_sentence:
+                        public_class.append(JClass(elm))
+        return public_class
 
-    def extractPublicAttr(self, alltype):
+    def extractPublicAttr(self):
         retval = []
-        public_class_name = self._isPublicClass()
+        public_class_name = self.isPublicClass()
         if public_class_name:
             for elm in self.elements[1:]:
                 if isinstance(elm, tuple):
                     sentence, _ = elm
-                    tokenized_sentence = Util.splitToken(sentence)
-                    next_vartoken = False
-                    next_tempratetoken = False
-                    next_arraytoken = False
-                    buf = ""
-                    template = ""
-                    attr_type = ""
-                    is_array = False
-                    for token in tokenized_sentence:
-                        if not token in Util.keywords:
-                            if next_vartoken:
-                                if token == "<":
-                                    next_vartoken = False
-                                    next_tempratetoken = True
-                                elif token == "[":
-                                    is_array = True
-                                    next_vartoken = False
-                                    next_arraytoken = True
-                                else:
-                                    retval.append(Var(attr_type, template, is_array, token))
-                                    break
-                            elif next_tempratetoken:
-                                if token == ">":
-                                    next_tempratetoken = False
-                                    next_vartoken = True
-                                else:
-                                    template += token
-                            elif next_arraytoken:
-                                if token == "]":
-                                    next_arraytoken = False
-                                    next_vartoken = True
-                            else:
-                                if token in alltype:
-                                    attr_type = token
-                                    next_vartoken = True
+                    retval.append(JVar(sentence))
         else:
             for elm in self.elements:
                 if not isinstance(elm, tuple):
-                    retval += elm.extractPublicAttr(alltype)
+                    retval += elm.extractPublicAttr()
         return retval
+
+    def extractUsedVar(self):
+        self.used_var = []
+        for elm in self.elements:
+            if isinstance(elm, tuple):
+                sentence, _ = elm
+                tokenized_sentence = Util.splitToken(sentence)
+                buf = ""
+                for token in tokenized_sentence:
+                    if token == '=':
+                        if buf:
+                            self.used_var.append(buf)
+                    buf = token
+        # print(self.used_var)
     
-    def _isPublicClass(self):
+    def isPublicClass(self):
         if isinstance(self.elements[0], tuple):
             sentence, _ = self.elements[0]
             tokenized_sentence = Util.splitToken(sentence)
             if "public" in tokenized_sentence and "class" in tokenized_sentence:
                 return tokenized_sentence[tokenized_sentence.index("class") + 1]
         return False
+    
+    @staticmethod
+    def isSentence(element):
+        return isinstance(element, tuple)
+            
     
     def _count(self):
         count = 0

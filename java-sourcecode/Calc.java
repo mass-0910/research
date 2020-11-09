@@ -29,6 +29,7 @@ public class Calc extends JFrame {
 			form.split();
 			form.splitOut();
 			label.setText(form.calc());
+			String label_text = label.getText();
 			nowform = new String(textbox.getText());
 		}
 	};
