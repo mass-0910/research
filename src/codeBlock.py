@@ -107,30 +107,13 @@ class CodeBlock:
                 #         token_list.append("OTHER")
         return self.block_type
 
-    def extractPublicClass(self):
+    def extractClass(self):
         public_class = []
         for elm in self.elements:
             if not isinstance(elm, tuple):
                 if elm.getBlockType() == BlockType.class_def:
-                    sentence = elm.getSentence(0)
-                    tokenized_sentence = Util.splitToken(sentence)
-                    if "public" in tokenized_sentence:
-                        public_class.append(JClass(elm))
+                    public_class.append(JClass(elm))
         return public_class
-
-    def extractPublicAttr(self):
-        retval = []
-        public_class_name = self.isPublicClass()
-        if public_class_name:
-            for elm in self.elements[1:]:
-                if isinstance(elm, tuple):
-                    sentence, _ = elm
-                    retval.append(JVar(sentence))
-        else:
-            for elm in self.elements:
-                if not isinstance(elm, tuple):
-                    retval += elm.extractPublicAttr()
-        return retval
 
     def extractUsedVar(self):
         self.used_var = []

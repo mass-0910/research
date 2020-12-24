@@ -1,4 +1,5 @@
 import sys, os
+import os.path as path
 from codeBlock import CodeBlock
 from pyJVM import JavaInterpreter
 from utility import Util
@@ -100,60 +101,77 @@ class Debugger:
     def findBuggyPoint(self):
 
         #Detecting Buggy Point in Source Code
-        for i, (filename, codeblock) in enumerate(self.codeBlocks):
-            if filename == self.buggy_file:
-                buggy_codeblock_index = i
-                for j, (sentence, code_linenum) in enumerate(codeblock.allSentence()):
-                    # print("code: %s" % str(codeblock.allSentence()[j]))
-                    if not j > len(codeblock.allSentence()) - 2:
-                        condition = code_linenum <= self.buggy_line and codeblock.allSentence()[j + 1][1] > self.buggy_line
-                    else:
-                        condition = code_linenum <= self.buggy_line
-                    if condition:
-                        self.buggy_index = j
-                        # print(codeblock.allSentence()[j])
-                        # print(self.buggy_index)
-                break
+        end = False
+        for class_ in self.classes:
+            print(class_.getFilename())
+            for method in class_.public_methods + class_.private_methods:
+                for elm in method.codeblock.allSentence():
+                    _, linenum = elm
+                    if self.buggy_file == class_.getFilename() and self.buggy_line == linenum:
+                        final_method = method
+        
+        # cut
+        
+        # for i, (filename, codeblock) in enumerate(self.codeBlocks):
+        #     if filename == self.buggy_file:
+        #         buggy_codeblock_index = i
+        #         for j, (sentence, code_linenum) in enumerate(codeblock.allSentence()):
+        #             # print("code: %s" % str(codeblock.allSentence()[j]))
+        #             if not j > len(codeblock.allSentence()) - 2:
+        #                 condition = code_linenum <= self.buggy_line and codeblock.allSentence()[j + 1][1] > self.buggy_line
+        #             else:
+        #                 condition = code_linenum <= self.buggy_line
+        #             if condition:
+        #                 self.buggy_index = j
+        #                 # print(codeblock.allSentence()[j])
+        #                 # print(self.buggy_index)
+        #         break
         
         #Reverse Viewing on Source Code
-        _, buggy_codeblock = self.codeBlocks[buggy_codeblock_index]
-        buggy_block, absolute_index = buggy_codeblock.allIndexToAbsoluteIndex(self.buggy_index)
-        for i in reversed(range(absolute_index)):
-            elm = buggy_block.getElements(i)
-            if CodeBlock.isSentence(buggy_block.getElements(i)):
-                sentence, linenum = elm
-                print("reverse view on line %d: %s" % (linenum, sentence))
-                tokenized_sentence = Util.splitToken(sentence)
+        # _, buggy_codeblock = self.codeBlocks[buggy_codeblock_index]
+        # buggy_block, absolute_index = buggy_codeblock.allIndexToAbsoluteIndex(self.buggy_index)
+        # for i in reversed(range(absolute_index)):
+        #     elm = buggy_block.getElements(i)
+        #     if CodeBlock.isSentence(buggy_block.getElements(i)):
+        #         sentence, linenum = elm
+        #         print("reverse view on line %d: %s" % (linenum, sentence))
+        #         tokenized_sentence = Util.splitToken(sentence)
+        #     else:
+        #         print('block')
+        #         print(elm.allSentence())
+    
+    def outputSource(self):
+        if not path.exists("tmp_source") and not path.isdir("tmp_source"):
+            os.makedirs("tmp_source")
+        for class_ in self.classes:
+            with open("tmp_source/%s.java" % class_.getName(), mode="w"):
                 
-            else:
-                print('block')
-                print(elm.allSentence())
 
-        
     
     def preprocessing(self):
         Util.all_type = Util.all_type + ["void", "short", "int", "long", "float", "double", "char", "boolean"]
         for filename, code in self.codeBlocks:
-            public_class = code.extractPublicClass()
-            for class_ in public_class:
-                Util.all_type.append(class_.getName())
+            classes = code.extractClass()
+            for class_ in classes:
+                if class_.getScope() == "public":
+                    Util.all_type.append(class_.getName())
+        self.classes = []
         for filename, code in self.codeBlocks:
-            public_class = code.extractPublicClass()
-            for class_ in public_class:
+            classes = code.extractClass()
+            for class_ in classes:
+                class_.setFilename(filename)
                 class_.printClassInfo()
-        self.public_attr = []
-        for name, code in self.codeBlocks:
-            self.public_attr += code.extractPublicAttr()
-        # for var in self.public_attr:
-        #     print(var.toString())
+            self.classes += classes
 
 
 if __name__ == "__main__":
-    dbg = Debugger("testcode/test.tc")
-    dbg.assignSourceCode("java-sourcecode/BugSort.java")
-    # dbg = Debugger("testcode/test2.tc")
-    # dbg.assignSourceCode("java-sourcecode/Calc.java")
-    # dbg.assignSourceCode("java-sourcecode/Form.java")
+    # dbg = Debugger("testcode/test.tc")
+    # dbg.assignSourceCode("java-sourcecode/BugSort.java")
+    # dbg.assignSourceCode("java-sourcecode/test.java");
+    dbg = Debugger("testcode/test2.tc")
+    dbg.assignSourceCode("java-sourcecode/Calc.java")
+    dbg.assignSourceCode("java-sourcecode/Form.java")
+
 
     Util.getAllClass()
     dbg.testDecode()

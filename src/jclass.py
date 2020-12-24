@@ -1,11 +1,14 @@
 from jvar import JVar
 from jmethod import JMethod
 from utility import Util
+import os.path as path
+from os import makedirs
 
 class JClass:
 
     def __init__(self, codeBlock):
         self.name = ""
+        self.filename = ""
         self.public_attrs = []
         self.private_attrs = []
         self.public_methods = []
@@ -21,9 +24,25 @@ class JClass:
 
         # extract class methods
         self.public_methods, self.private_methods = self._extractMethods(codeBlock)
+        for method in self.public_methods:
+            method.extractUsingAttr()
+        for method in self.private_methods:
+            method.extractUsingAttr()
+    
+    def setFilename(self, name):
+        self.filename = name
     
     def getName(self):
         return self.name
+    
+    def getFilename(self):
+        return self.filename
+
+    def getScope(self):
+        if self.is_public:
+            return "public"
+        else:
+            return "private"
     
     def getPublicAttrNames(self):
         retval = []
@@ -40,38 +59,46 @@ class JClass:
         return retval
     
     def printClassInfo(self):
-        print("====ClassInfo====")
-        print("name: %s" % self.name)
-        print("scope: %s" % "public" if self.is_public else "private")
-        print("public attributes:")
-        for attr in self.public_attrs:
-            print("\t%s" % attr.toString())
-        print("private attributes:")
-        for attr in self.private_attrs:
-            print("\t%s" % attr.toString())
-        print("public methods:")
-        for method in self.public_methods:
-            name, block = method.getName(), method.getBlock()
-            print("\tmethod name: %s" % name)
-            print("\tmethod arguments:")
-            for arg in method.getArgs():
-                print("\t\t%s" % arg)
-            print("\tmethod sentence: ")
-            for elm in block.allSentence():
-                print("\t\t" + str(elm))
-        print("private methods:")
-        for method in self.private_methods:
-            name, block = method.getName(), method.getBlock()
-            print("\tmethod name: %s" % name)
-            print("\tmethod arguments:")
-            for arg in method.getArgs():
-                print("\t\t%s" % arg)
-            print("\tmethod sentence: ")
-            for elm in block.allSentence():
-                print("\t\t" + str(elm))
-        print("====END====")
-        
-    
+        if not path.exists("class_info"):
+            makedirs("class_info")
+        with open("class_info/" + self.name, mode="w") as fp:
+            print("====ClassInfo====", file=fp)
+            print("name: %s" % self.name, file=fp)
+            print("written in: %s" % self.filename, file=fp)
+            print("scope: %s" % ("public" if self.is_public else "private"), file=fp)
+            print("public attributes:", file=fp)
+            for attr in self.public_attrs:
+                print("\t%s" % attr.toString(), file=fp)
+            print("private attributes:", file=fp)
+            for attr in self.private_attrs:
+                print("\t%s" % attr.toString(), file=fp)
+            print("public methods:", file=fp)
+            for method in self.public_methods:
+                name, type_, block = method.getName(), method.getReturnType(), method.getBlock()
+                print("\tmethod name: %s" % name, file=fp)
+                print("\tmethod return type: %s" % type_, file=fp)
+                print("\tmethod arguments:", file=fp)
+                for arg in method.getArgs():
+                    print("\t\t%s" % arg, file=fp)
+                print("\tmethod local var: %s" % str([var.getName() for var in method.getLocalVar()]), file=fp)
+                print("\tmethod using attributes: %s" % str(method.getUsingAttr()), file=fp)
+                print("\tmethod sentence: ", file=fp)
+                for elm in block.allSentence():
+                    print("\t\t" + str(elm), file=fp)
+            print("private methods:", file=fp)
+            for method in self.private_methods:
+                name, block = method.getName(), method.getBlock()
+                print("\tmethod name: %s" % name, file=fp)
+                print("\tmethod arguments:", file=fp)
+                for arg in method.getArgs():
+                    print("\t\t%s" % arg, file=fp)
+                print("\tmethod local var: %s" % str([var.getName() for var in method.getLocalVar()]), file=fp)
+                print("\tmethod using attributes: %s" % str(method.getUsingAttr()), file=fp)
+                print("\tmethod sentence: ", file=fp)
+                for elm in block.allSentence():
+                    print("\t\t" + str(elm), file=fp)
+            print("====END====", file=fp)
+            
     def _extractName(self, codeBlock):
         sentence, _ = codeBlock.elements[0]
         tokenized_sentence = Util.splitToken(sentence)
@@ -114,9 +141,9 @@ class JClass:
                 for token in tokenized_sentence:
                     if next:
                         if "public" in tokenized_sentence:
-                            public.append(JMethod(elm))
+                            public.append(JMethod(self, elm))
                         else:
-                            private.append(JMethod(elm))
+                            private.append(JMethod(self, elm))
                         break
                         next = False
                     if token in Util.all_type:

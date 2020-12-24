@@ -1,6 +1,7 @@
 from utility import Util
 
 class JVar:
+
     def __init__(self, def_sentence):
 
         # print("JVar accept: " + def_sentence)
@@ -48,6 +49,9 @@ class JVar:
     
     def getVarInfo(self):
         return (self.type, self.name, self.template, self.is_array)
+    
+    def getName(self):
+        return self.name
     
     def toString(self):
         array_str = "[]" if self.is_array else ""
