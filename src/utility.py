@@ -2,7 +2,7 @@ import os
 
 class Util:
 
-    symbol = ['\'', ',', '.', '+', '-', '*', '/', '%', '++', '--', '&', '|', '~', '<<', '>>', '>>>', '{', '}', '[', ']', '(', ')', ';', ':', '=', '>', '<', '!', '?', '==', '&&', '||', '+=', '-=', '*=', '/=', '<=', '>=', '&=', '|=', '^=', '<<=', '>>=', '>>>=']
+    symbol = ['//', '/*', '*/', '\'', ',', '.', '+', '-', '*', '/', '%', '++', '--', '&', '|', '~', '<<', '>>', '>>>', '{', '}', '[', ']', '(', ')', ';', ':', '=', '>', '<', '!', '?', '==', '&&', '||', '+=', '-=', '*=', '/=', '<=', '>=', '&=', '|=', '^=', '<<=', '>>=', '>>>=', '@']
     space = [' ', '\t', '\n', '\r']
     keywords = [   
                     "abstract", "assert", "break", "byte", "case", "catch", "class", "const", \
@@ -26,7 +26,7 @@ class Util:
     def splitToken(sentence):
         retval = []
         buf = ""
-        mode = 0 #normal
+        mode = 0 #name
         escape = False
         for character in sentence:
             if mode == 0: #name
@@ -80,6 +80,13 @@ class Util:
             retval.append(buf)
             buf = ""
         return retval
+    
+    @staticmethod
+    def isIdentifier(token):
+        if not token in Util.symbol and not token in Util.keywords and not Util.isString(token):
+            return True
+        else:
+            return False
     
     @staticmethod
     def isString(token):

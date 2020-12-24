@@ -1,8 +1,6 @@
-from jvar import JVar
-from utility import Util
+import json
 
-if __name__ == "__main__":
-    Util.getAllClass()
-    Util.all_type = Util.all_type + ["void", "short", "int", "long", "float", "double", "char", "boolean"]
-    a = JVar("ArrayList<int>[] a = new ArrayList<int>[10]")
-    print(a.toString())
+with open("out_attrs.json", mode='r') as f:
+    a = json.load(f)
+    for k, v in a.items():
+        print(v["htmlTreeBuilder0"])
