@@ -1,0 +1,25 @@
+{
+    "test0": {
+        "finallyObjectState": {
+            "bugSort0": {
+                "A": [0, 0, 0, 0, 0, 0, 0, -2940]
+            }
+        }
+    },
+    "test1": {
+        "result": "pass"
+    },
+    "test2": {
+        "finallyObjectState": {
+            "bugSort0": {
+                "A": [0, 0, 0, 0, 0, 0, 0, -2940]
+            }
+        }
+    },
+    "test3": {
+        "result": "pass"
+    },
+    "test4": {
+        "result": "pass"
+    }
+}
