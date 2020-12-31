@@ -46,27 +46,3 @@ class SuspiciousHtmlMaker:
         for i in range(3):
             color[i] = maxcol[i] * sus_rate + mincol[i] * (1.0 - sus_rate)
         return "{:02x}{:02x}{:02x}".format(int(color[0]), int(color[1]), int(color[2]))
-
-
-'''
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <title></title>
-</head>
-<style type="text/css">
-    code#aaa {
-        color: #000;
-    }
-</style>
-<body>
-<p>
-    suspicious
-</p>
-<pre>
-123 |<code>aaa</code>
-123 |<code id="aaa">bbb</code>
-</pre>
-</body>
-</html>
-'''
